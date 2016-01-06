@@ -1,16 +1,25 @@
 # stateless-react
 Stateless React with a proper FRP system
 
-# Test
+# Installl & Test
+
+Prepaire some project folder
 
 ```
+$ git clone https://github.com/kenokabe/stateless-react.git
+
+$ cd stateless-react
+
+$ npm install
+
 $ npm test
 ```
 
 equivalent to
 
 ```
-$ babel ./index.jsx -o ./index0.js; webpack ./index0.js ./index.js;
+$ ./node_modules/.bin/babel ./index.jsx -o ./index0.js; ./node_modules/.bin/webpack ./index0.js ./index.js;
+
 ```
 Then Open
 
