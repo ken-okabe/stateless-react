@@ -48,14 +48,6 @@
 
 	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; })();
 
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
 	(function () {
 	  'use strict';
 
@@ -63,6 +55,7 @@
 	  var ReactDOM = __webpack_require__(158);
 	  var Immutable = __webpack_require__(159);
 	  var __ = __webpack_require__(160);
+	  var __Component = __webpack_require__(161);
 
 	  //================================
 	  var HelloComponent = function HelloComponent() {
@@ -194,103 +187,84 @@
 
 	  //########## FRP ############################
 
-	  //***React state with life cycle is stateless sequence*****
-	  var seqComponent = function seqComponent(__seq) {
-	    var SeqComponent = (function (_React$Component) {
-	      _inherits(SeqComponent, _React$Component);
+	  var TextComponent = function TextComponent() {
+	    var __value = __();
+	    var onChange = function onChange(e) {
+	      __value.t = e.target.value;
+	      __value.log("__value");
+	    };
 
-	      function SeqComponent() {
-	        _classCallCheck(this, SeqComponent);
+	    var __seqEl = __([__value]).tMap(function (_ref) {
+	      var _ref2 = _slicedToArray(_ref, 1);
 
-	        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(SeqComponent).call(this));
+	      var value = _ref2[0];
+	      return React.createElement(
+	        'div',
+	        null,
+	        React.createElement('input', { type: 'text', value: value, onChange: onChange })
+	      );
+	    });
 
-	        _this.state = {
-	          seq: __seq.t
-	        };
-	        var timeseq = __seq.tMap(function (val) {
-	          _this.setState({
-	            seq: val
-	          });
-	        });
-	        return _this;
-	      }
-
-	      _createClass(SeqComponent, [{
-	        key: 'render',
-	        value: function render() {
-	          return React.createElement(
-	            'span',
-	            null,
-	            this.state.seq
-	          );
-	        }
-	      }]);
-
-	      return SeqComponent;
-	    })(React.Component);
-
-	    return React.createElement(SeqComponent, null);
+	    __value.t = "default text";
+	    return __Component(__seqEl);
 	  };
-	  //**************************************
 
 	  var TimerComponent = function TimerComponent() {
 
 	    var naturalSeq = Immutable.Range();
 	    //infinite natural numbers sequence [0...Infinite]
-
-	    var __count = __.intervalSeq(1000) //1000msec time resolution
+	    var __count = __.time(__.INTERVAL, 1000) //1000msec time resolution
 	    // `seqMap` is to map Immutable-js infinite Sequence
 	    //                 onto TimeEngine infinite Sequence
 	    // map natural numbers sequence onto intervalSeq(1000)
-	    .seqMap(naturalSeq).tMap(function (count) {
-	      __.t = __.log(count);
+	    .immutableSeqMap(naturalSeq).tMap(function (count) {
+	      __.log.t = count;
 	      return count;
 	    });
 	    // as a result, this works as an incremental counter
 
-	    var el = React.createElement(
-	      'div',
-	      null,
-	      'Timer : ',
-	      seqComponent(__count)
-	    );
+	    var __seqEl = __([__count]).tMap(function (_ref3) {
+	      var _ref4 = _slicedToArray(_ref3, 1);
 
-	    return el;
+	      var count = _ref4[0];
+	      return React.createElement(
+	        'div',
+	        null,
+	        'Timer : ',
+	        count
+	      );
+	    });
+
+	    return __Component(__seqEl);
 	  };
 
-	  //-------Physics-------------------------------
-
-	  //MKS system of units
-	  var V0 = 85.0; // m/s
-	  var DEG = 40; //degree
-	  var THETA = DEG / 180 * Math.PI; //radian
-	  var G = 9.8; //gravity const
-
-	  //10msec time resolution
-	  //t seconds elapsed since t0
-	  var t = __.intervalSeq(10).tMap(function (tt, t0) {
-	    return (tt - t0) / 1000;
-	  });
-
-	  var x = t.tMap(function (t) {
-	    return V0 * Math.cos(THETA) * t;
-	  });
-
-	  var y = t.tMap(function (t) {
-	    return V0 * Math.sin(THETA) * t - 1 / 2 * G * Math.pow(t, 2);
-	  });
-
-	  //==============================================================
-	  var Drawscale = 2; //2 dot = 1 meter
-
 	  var PhysicsComponent = function PhysicsComponent() {
+	    //-------Physics-------------------------------
+	    //MKS system of units
+	    var V0 = 85.0; // m/s
+	    var DEG = 40; //degree
+	    var THETA = DEG / 180 * Math.PI; //radian
+	    var G = 9.8; //gravity const
 
-	    var __seqElement = __([x, y]) //atomic update
-	    .tMap(function (_ref) {
-	      var _ref2 = _slicedToArray(_ref, 2);
+	    //10msec time resolution
+	    //t seconds elapsed since t0
+	    var t = __.time(__.INTERVAL, 10).tMap(function (tt, t0) {
+	      return (tt - t0) / 1000;
+	    });
+	    var x = t.tMap(function (t) {
+	      return V0 * Math.cos(THETA) * t;
+	    });
+	    var y = t.tMap(function (t) {
+	      return V0 * Math.sin(THETA) * t - 1 / 2 * G * Math.pow(t, 2);
+	    });
+	    //==============================================================
+	    var Drawscale = 2; //2 dot = 1 meter
+	    var __seqEl = __([x, y]) //atomic update
+	    .tMap(function (_ref5) {
+	      var _ref6 = _slicedToArray(_ref5, 2);
 
-	      var x = _ref2[0];
-	      var y = _ref2[1];
+	      var x = _ref6[0];
+	      var y = _ref6[1];
 	      return React.createElement(
 	        'div',
 	        null,
@@ -303,13 +277,7 @@
 	      );
 	    });
 
-	    var el = React.createElement(
-	      'div',
-	      null,
-	      seqComponent(__seqElement)
-	    );
-
-	    return el;
+	    return __Component(__seqEl);
 	  };
 
 	  //====================================
@@ -338,6 +306,8 @@
 	    ChildrenNumberComponent10(),
 	    '=====================',
 	    ChildrenNumberComponent100(),
+	    '=====================',
+	    TextComponent(),
 	    '=====================',
 	    TimerComponent(),
 	    '=====================',
@@ -24934,191 +24904,75 @@
 
 /***/ },
 /* 160 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
-	'use strict';
+	"use strict";
 
 	(function () {
 	  'use strict';
 
-	  var log;
-	  if (typeof module !== 'undefined' && module.exports) {
-	    var util = __webpack_require__(161); //debug
-	    log = function (obj) {
-	      //  console.info(util.inspect(obj, false, null));
-	    };
-	  } else {
-	      log = function (obj) {
-	        //    console.info(obj);
-	      };
-	    }
-	  //-----------------------------------
-
-	  var seqID = function seqID() {
-	    var id = 0;
-	    var getID = function getID() {
+	  var getID = function (id0) {
+	    var id = id0;
+	    return function () {
 	      return id++;
 	    };
-	    return getID;
-	  };
-
-	  var getID = seqID();
+	  }(0);
 	  //-----------------------------------
-	  //__([a,b], true)     true as store
-	  var timeseq = function timeseq() {
+	  //__([a,b], true) // new seq depends on ds =[a,b]
+	  var __ = function __() {
+	    var ds = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+	    var store = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
 
-	    if (Array.isArray(arguments[0])) {
-
-	      var ds = arguments[0];
-	      var store = arguments[1];
-
-	      var seq1 = seq(store);
-
-	      //ds and us
-	      ds.map(function (d) {
-	        //  seq1.ds = ds;
-	        seq1.ds[d.id] = d;
-	        seq1.dsIsUpdated[d.id] = false;
-	        // add self seq as the u to d
-	        d.us[seq1.id] = seq1;
-	      });
-
-	      seq1.eq = function (xx) {
-	        log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-	        log(xx);
-	        return ds.map(function (seq) {
-	          return seq.t;
-	        });
-	      };
-
-	      log('########__([x])###########');
-	      log({
-	        seq1: seq1
-	      });
-
-	      return seq1;
-	    } else {
-	      var seq1 = seq(arguments[0]);
-
-	      log({
-	        seq1: seq1
-	      });
-	      return seq1;
-	    }
-	  };
-
-	  Object.defineProperties(timeseq, {
-	    t: {
-	      get: function get() {
-	        return Date.now();
-	      },
-	      set: function set(f) {
-	        f();
-	      }
-	    }
-	  });
-
-	  timeseq.log = function () {
-	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-	      args[_key] = arguments[_key];
-	    }
-
-	    var f = function f() {
-	      console.info.apply(console, args);
-	      return args;
-	    };
-	    return f;
-	  };
-
-	  timeseq.wrap = function (legacyF) {
-	    var f = function f() {
-	      for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-	        args[_key2] = arguments[_key2];
-	      }
-
-	      var wrappedF = function wrappedF() {
-	        legacyF.apply(undefined, args);
-	      };
-	      return wrappedF;
-	    };
-	    return f;
-	  };
-
-	  timeseq.intervalSeq = function (interval, store) {
-	    var seq = timeseq.seq(store);
-
-	    //seq.intervalSeq = true;
-	    var f = function f() {
-	      seq.t = Date.now();
-	    };
-	    setInterval(f, interval);
-
-	    return seq;
-	  };
-
-	  timeseq.timeoutSeq = function (interval, store) {
-	    var seq = timeseq.seq(store);
-
-	    //seq.timeoutSeq = true;
-	    var f = function f() {
-	      seq.t = Date.now();
-	    };
-	    setTimeout(f, interval);
-
-	    return seq;
-	  };
-	  //------------------
-	  //--------
-	  var seq = function seq(store) {
-	    // return new seq
 	    var seq = []; //seq is vanilla JS array + features
-	    var valOnT;
-
 	    seq.id = getID();
-
 	    seq.store = store;
+	    seq.us = [];
+	    seq.ds = ds;
+	    seq.updatedFor = {};
+	    seq.eq = function () {
+	      return seq.ds.map(function (d) {
+	        return d.t;
+	      });
+	    };
+
+	    seq.ds.map(function (d) {
+	      // add self seq to us Array of d
+	      d.us[d.us.length] = seq;
+	      d.updatedFor[seq.id] = 0; // non-interference dependency
+	    });
+
 	    //-----------------
 	    seq.tMap = function (f) {
-	      var seq1 = timeseq.seq(seq.store); // new with left-store
-
-	      //ds and us
-	      //  seq1.ds = ds;
-	      seq1.ds[seq.id] = seq;
-	      seq1.dsIsUpdated[seq.id] = false;
-	      // add self seq as the u to d
-	      seq.us[seq1.id] = seq1;
-
+	      var tMappedSeq = __([seq], store);
 	      var t0 = Date.now();
-	      seq1.eq = function (t) {
+	      tMappedSeq.eq = function (t) {
 	        return f(t, t0);
 	      };
-
-	      return seq1;
+	      return tMappedSeq;
 	    };
 	    //-----------------
-	    seq.seqMap = function (immutableSeq) {
-
-	      var seq1 = timeseq.seq(seq.store); // new with left-store
-
-	      //ds and us
-	      //  seq1.ds = ds;
-	      seq1.ds[seq.id] = seq;
-	      seq1.dsIsUpdated[seq.id] = false;
-	      // add self seq as the u to d
-	      seq.us[seq1.id] = seq1;
-
+	    seq.immutableSeqMap = function (immutableSeq) {
+	      var seqMappedSeq = __([seq], store);
 	      var it = immutableSeq.values();
-	      seq1.eq = function () {
+	      seqMappedSeq.eq = function () {
 	        return it.next().value;
 	      };
-
-	      return seq1;
+	      return seqMappedSeq;
 	    };
 
+	    seq.log = function (msg) {
+	      seq.tMap(function (val) {
+	        if (typeof msg === "undefined") {
+	          console.log(val);
+	          return val;
+	        } else {
+	          console.info(msg + ":", val);
+	          return val;
+	        }
+	      });
+	      return seq;
+	    };
 	    //-----------------
-	    seq.us = {};
-	    seq.ds = {};
-	    seq.dsIsUpdated = {};
 
 	    var IOT = {};
 	    seq.IndexOnTimestamp = function (timestamp) {
@@ -25143,70 +24997,98 @@
 	      t: { //foo.t
 
 	        get: function get() {
-	          return valOnT;
+	          return seq.valOnT;
 	        },
 	        set: function set(tval) {
-	          log('-----tval');
-	          log(tval);
-	          valOnT = tval;
+	          seq.valOnT = tval;
 	          //----------------------
 	          if (store) {
 	            var T = Date.now();
 	            IOT[T] = seq.length;
 	            TOI[seq.length] = T;
-	            this[seq.length] = valOnT;
+	            seq[seq.length] = seq.valOnT;
 	          }
 	          //----------------------
+	          Object.keys(seq.updatedFor).map(function (key) {
+	            seq.updatedFor[key] = 1;
+	          });
+	          seq.us.map(function (u) {
+	            //-------------------
+	            var dsAllUpdated = u.ds.map(function (d) {
+	              return d.updatedFor[u.id];
+	            }).reduce(function (a, b) {
+	              return a * b;
+	            });
 
-	          Object.keys(seq.us).map(function (id) {
-	            log('--id');
-	            log(id);
-	            var u = seq.us[id];
-	            //=================
-	            if (false) {
-	              // not bottom
-	              throw new Error("the value depends on another value");
-	            } else {
-	              //bottom
-	              u.dsIsUpdated[seq.id] = true;
-	              //propagate ======================================
-	              log('############bottom update!###########');
-	              var flag = true;
-	              Object.keys(u.ds).map(function (id) {
-	                log(id);
-	                log(u.dsIsUpdated[id]);
-	                if (u.dsIsUpdated[id] === false) {
-	                  flag = false; //no functional library here
-	                }
+	            if (dsAllUpdated === 1) {
+	              u.t = u.eq(tval); //propagate
+	              //--clear updated ds in non-interference way--
+	              u.ds.map(function (d) {
+	                d.updatedFor[u.id] = 0;
 	              });
-	              log('=calced flag');
-	              log(flag);
-
-	              if (flag === true)
-	                // the us's all d.isUpdated === true
-	                {
-	                  u.t = u.eq(tval);
-
-	                  Object.keys(u.ds).map(function (id) {
-	                    u.dsIsUpdated[id] = false;
-	                  });
-	                }
-	              //=================
 	            }
 	          });
 	        }
 	      }
 	    });
-
+	    //=====================================
 	    return seq;
 	  };
-	  //--------
-	  timeseq.seq = seq;
+	  //==================
+
+	  __.DELAY = 0;
+	  __.INTERVAL = 1;
+
+	  __.time = function (mode, interval, store) {
+	    var seq = __([], store);
+	    if (mode === __.DELAY) {
+	      setTimeout(function () {
+	        return seq.t = Date.now();
+	      }, interval);
+	    } else if (mode === __.INTERVAL) {
+	      setInterval(function () {
+	        return seq.t = Date.now();
+	      }, interval);
+	    }
+	    return seq;
+	  };
+
+	  __.log = __([], true);
+	  __.log.tMap(function (val) {
+	    console.info(val);
+	    return val;
+	  });
+
+	  Object.defineProperties(__, {
+	    t: {
+	      get: function get() {
+	        return Date.now();
+	      },
+	      set: function set(f) {
+	        f();
+	      }
+	    }
+	  });
+
+	  __.pure = function (legacyF) {
+	    var f = function f() {
+	      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	        args[_key] = arguments[_key];
+	      }
+
+	      var wrappedF = function wrappedF() {
+	        legacyF.apply(undefined, args);
+	      };
+	      return wrappedF;
+	    };
+	    return f;
+	  };
+	  //------------------
 
 	  if (typeof module !== 'undefined' && module.exports) {
-	    module.exports = timeseq;
+	    module.exports = __;
 	  } else {
-	    window.__ = timeseq;
+	    window.__ = __;
 	  }
 	})();
 
@@ -25215,633 +25097,258 @@
 /* 161 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(global, process) {// Copyright Joyent, Inc. and other Node contributors.
-	//
-	// Permission is hereby granted, free of charge, to any person obtaining a
-	// copy of this software and associated documentation files (the
-	// "Software"), to deal in the Software without restriction, including
-	// without limitation the rights to use, copy, modify, merge, publish,
-	// distribute, sublicense, and/or sell copies of the Software, and to permit
-	// persons to whom the Software is furnished to do so, subject to the
-	// following conditions:
-	//
-	// The above copyright notice and this permission notice shall be included
-	// in all copies or substantial portions of the Software.
-	//
-	// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-	// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-	// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-	// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-	// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-	// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-	// USE OR OTHER DEALINGS IN THE SOFTWARE.
+	'use strict';
 
-	var formatRegExp = /%[sdj%]/g;
-	exports.format = function(f) {
-	  if (!isString(f)) {
-	    var objects = [];
-	    for (var i = 0; i < arguments.length; i++) {
-	      objects.push(inspect(arguments[i]));
-	    }
-	    return objects.join(' ');
-	  }
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	  var i = 1;
-	  var args = arguments;
-	  var len = args.length;
-	  var str = String(f).replace(formatRegExp, function(x) {
-	    if (x === '%%') return '%';
-	    if (i >= len) return x;
-	    switch (x) {
-	      case '%s': return String(args[i++]);
-	      case '%d': return Number(args[i++]);
-	      case '%j':
-	        try {
-	          return JSON.stringify(args[i++]);
-	        } catch (_) {
-	          return '[Circular]';
-	        }
-	      default:
-	        return x;
-	    }
-	  });
-	  for (var x = args[i]; i < len; x = args[++i]) {
-	    if (isNull(x) || !isObject(x)) {
-	      str += ' ' + x;
-	    } else {
-	      str += ' ' + inspect(x);
-	    }
-	  }
-	  return str;
-	};
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-	// Mark that a method should not be used.
-	// Returns a modified function which warns once by default.
-	// If --no-deprecation is set, then it is a no-op.
-	exports.deprecate = function(fn, msg) {
-	  // Allow for deprecating things in the process of starting up.
-	  if (isUndefined(global.process)) {
-	    return function() {
-	      return exports.deprecate(fn, msg).apply(this, arguments);
-	    };
-	  }
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	  if (process.noDeprecation === true) {
-	    return fn;
-	  }
+	(function () {
+	  'use strict';
 
-	  var warned = false;
-	  function deprecated() {
-	    if (!warned) {
-	      if (process.throwDeprecation) {
-	        throw new Error(msg);
-	      } else if (process.traceDeprecation) {
-	        console.trace(msg);
-	      } else {
-	        console.error(msg);
+	  var React = __webpack_require__(1);
+	  var __ = __webpack_require__(162);
+
+	  //***React state with life cycle is stateless sequence*****
+	  var __Component = function __Component(__seqEl) {
+	    var SeqComponent = function (_React$Component) {
+	      _inherits(SeqComponent, _React$Component);
+
+	      function SeqComponent() {
+	        _classCallCheck(this, SeqComponent);
+
+	        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(SeqComponent).call(this));
+
+	        _this.state = {
+	          seqEl: __seqEl.t
+	        };
+	        var timeseq = __seqEl.tMap(function (val) {
+	          _this.setState({
+	            seqEl: val
+	          });
+	        });
+	        return _this;
 	      }
-	      warned = true;
-	    }
-	    return fn.apply(this, arguments);
-	  }
 
-	  return deprecated;
-	};
+	      _createClass(SeqComponent, [{
+	        key: 'render',
+	        value: function render() {
+	          return React.createElement(
+	            'span',
+	            null,
+	            this.state.seqEl
+	          );
+	        }
+	      }]);
 
+	      return SeqComponent;
+	    }(React.Component);
 
-	var debugs = {};
-	var debugEnviron;
-	exports.debuglog = function(set) {
-	  if (isUndefined(debugEnviron))
-	    debugEnviron = process.env.NODE_DEBUG || '';
-	  set = set.toUpperCase();
-	  if (!debugs[set]) {
-	    if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
-	      var pid = process.pid;
-	      debugs[set] = function() {
-	        var msg = exports.format.apply(exports, arguments);
-	        console.error('%s %d: %s', set, pid, msg);
-	      };
-	    } else {
-	      debugs[set] = function() {};
-	    }
-	  }
-	  return debugs[set];
-	};
-
-
-	/**
-	 * Echos the value of a value. Trys to print the value out
-	 * in the best way possible given the different types.
-	 *
-	 * @param {Object} obj The object to print out.
-	 * @param {Object} opts Optional options object that alters the output.
-	 */
-	/* legacy: obj, showHidden, depth, colors*/
-	function inspect(obj, opts) {
-	  // default options
-	  var ctx = {
-	    seen: [],
-	    stylize: stylizeNoColor
+	    return React.createElement(SeqComponent, null);
 	  };
-	  // legacy...
-	  if (arguments.length >= 3) ctx.depth = arguments[2];
-	  if (arguments.length >= 4) ctx.colors = arguments[3];
-	  if (isBoolean(opts)) {
-	    // legacy...
-	    ctx.showHidden = opts;
-	  } else if (opts) {
-	    // got an "options" object
-	    exports._extend(ctx, opts);
-	  }
-	  // set default options
-	  if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
-	  if (isUndefined(ctx.depth)) ctx.depth = 2;
-	  if (isUndefined(ctx.colors)) ctx.colors = false;
-	  if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
-	  if (ctx.colors) ctx.stylize = stylizeWithColor;
-	  return formatValue(ctx, obj, ctx.depth);
-	}
-	exports.inspect = inspect;
+	  //------------------
 
-
-	// http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
-	inspect.colors = {
-	  'bold' : [1, 22],
-	  'italic' : [3, 23],
-	  'underline' : [4, 24],
-	  'inverse' : [7, 27],
-	  'white' : [37, 39],
-	  'grey' : [90, 39],
-	  'black' : [30, 39],
-	  'blue' : [34, 39],
-	  'cyan' : [36, 39],
-	  'green' : [32, 39],
-	  'magenta' : [35, 39],
-	  'red' : [31, 39],
-	  'yellow' : [33, 39]
-	};
-
-	// Don't use 'blue' not visible on cmd.exe
-	inspect.styles = {
-	  'special': 'cyan',
-	  'number': 'yellow',
-	  'boolean': 'yellow',
-	  'undefined': 'grey',
-	  'null': 'bold',
-	  'string': 'green',
-	  'date': 'magenta',
-	  // "name": intentionally not styling
-	  'regexp': 'red'
-	};
-
-
-	function stylizeWithColor(str, styleType) {
-	  var style = inspect.styles[styleType];
-
-	  if (style) {
-	    return '\u001b[' + inspect.colors[style][0] + 'm' + str +
-	           '\u001b[' + inspect.colors[style][1] + 'm';
+	  if (typeof module !== 'undefined' && module.exports) {
+	    module.exports = __Component;
 	  } else {
-	    return str;
+	    window.__Component = __Component;
 	  }
-	}
+	})();
 
-
-	function stylizeNoColor(str, styleType) {
-	  return str;
-	}
-
-
-	function arrayToHash(array) {
-	  var hash = {};
-
-	  array.forEach(function(val, idx) {
-	    hash[val] = true;
-	  });
-
-	  return hash;
-	}
-
-
-	function formatValue(ctx, value, recurseTimes) {
-	  // Provide a hook for user-specified inspect functions.
-	  // Check that value is an object with an inspect function on it
-	  if (ctx.customInspect &&
-	      value &&
-	      isFunction(value.inspect) &&
-	      // Filter out the util module, it's inspect function is special
-	      value.inspect !== exports.inspect &&
-	      // Also filter out any prototype objects using the circular check.
-	      !(value.constructor && value.constructor.prototype === value)) {
-	    var ret = value.inspect(recurseTimes, ctx);
-	    if (!isString(ret)) {
-	      ret = formatValue(ctx, ret, recurseTimes);
-	    }
-	    return ret;
-	  }
-
-	  // Primitive types cannot have properties
-	  var primitive = formatPrimitive(ctx, value);
-	  if (primitive) {
-	    return primitive;
-	  }
-
-	  // Look up the keys of the object.
-	  var keys = Object.keys(value);
-	  var visibleKeys = arrayToHash(keys);
-
-	  if (ctx.showHidden) {
-	    keys = Object.getOwnPropertyNames(value);
-	  }
-
-	  // IE doesn't make error fields non-enumerable
-	  // http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
-	  if (isError(value)
-	      && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
-	    return formatError(value);
-	  }
-
-	  // Some type of object without properties can be shortcutted.
-	  if (keys.length === 0) {
-	    if (isFunction(value)) {
-	      var name = value.name ? ': ' + value.name : '';
-	      return ctx.stylize('[Function' + name + ']', 'special');
-	    }
-	    if (isRegExp(value)) {
-	      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
-	    }
-	    if (isDate(value)) {
-	      return ctx.stylize(Date.prototype.toString.call(value), 'date');
-	    }
-	    if (isError(value)) {
-	      return formatError(value);
-	    }
-	  }
-
-	  var base = '', array = false, braces = ['{', '}'];
-
-	  // Make Array say that they are Array
-	  if (isArray(value)) {
-	    array = true;
-	    braces = ['[', ']'];
-	  }
-
-	  // Make functions say that they are functions
-	  if (isFunction(value)) {
-	    var n = value.name ? ': ' + value.name : '';
-	    base = ' [Function' + n + ']';
-	  }
-
-	  // Make RegExps say that they are RegExps
-	  if (isRegExp(value)) {
-	    base = ' ' + RegExp.prototype.toString.call(value);
-	  }
-
-	  // Make dates with properties first say the date
-	  if (isDate(value)) {
-	    base = ' ' + Date.prototype.toUTCString.call(value);
-	  }
-
-	  // Make error with message first say the error
-	  if (isError(value)) {
-	    base = ' ' + formatError(value);
-	  }
-
-	  if (keys.length === 0 && (!array || value.length == 0)) {
-	    return braces[0] + base + braces[1];
-	  }
-
-	  if (recurseTimes < 0) {
-	    if (isRegExp(value)) {
-	      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
-	    } else {
-	      return ctx.stylize('[Object]', 'special');
-	    }
-	  }
-
-	  ctx.seen.push(value);
-
-	  var output;
-	  if (array) {
-	    output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
-	  } else {
-	    output = keys.map(function(key) {
-	      return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
-	    });
-	  }
-
-	  ctx.seen.pop();
-
-	  return reduceToSingleString(output, base, braces);
-	}
-
-
-	function formatPrimitive(ctx, value) {
-	  if (isUndefined(value))
-	    return ctx.stylize('undefined', 'undefined');
-	  if (isString(value)) {
-	    var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '')
-	                                             .replace(/'/g, "\\'")
-	                                             .replace(/\\"/g, '"') + '\'';
-	    return ctx.stylize(simple, 'string');
-	  }
-	  if (isNumber(value))
-	    return ctx.stylize('' + value, 'number');
-	  if (isBoolean(value))
-	    return ctx.stylize('' + value, 'boolean');
-	  // For some reason typeof null is "object", so special case here.
-	  if (isNull(value))
-	    return ctx.stylize('null', 'null');
-	}
-
-
-	function formatError(value) {
-	  return '[' + Error.prototype.toString.call(value) + ']';
-	}
-
-
-	function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
-	  var output = [];
-	  for (var i = 0, l = value.length; i < l; ++i) {
-	    if (hasOwnProperty(value, String(i))) {
-	      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-	          String(i), true));
-	    } else {
-	      output.push('');
-	    }
-	  }
-	  keys.forEach(function(key) {
-	    if (!key.match(/^\d+$/)) {
-	      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-	          key, true));
-	    }
-	  });
-	  return output;
-	}
-
-
-	function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
-	  var name, str, desc;
-	  desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
-	  if (desc.get) {
-	    if (desc.set) {
-	      str = ctx.stylize('[Getter/Setter]', 'special');
-	    } else {
-	      str = ctx.stylize('[Getter]', 'special');
-	    }
-	  } else {
-	    if (desc.set) {
-	      str = ctx.stylize('[Setter]', 'special');
-	    }
-	  }
-	  if (!hasOwnProperty(visibleKeys, key)) {
-	    name = '[' + key + ']';
-	  }
-	  if (!str) {
-	    if (ctx.seen.indexOf(desc.value) < 0) {
-	      if (isNull(recurseTimes)) {
-	        str = formatValue(ctx, desc.value, null);
-	      } else {
-	        str = formatValue(ctx, desc.value, recurseTimes - 1);
-	      }
-	      if (str.indexOf('\n') > -1) {
-	        if (array) {
-	          str = str.split('\n').map(function(line) {
-	            return '  ' + line;
-	          }).join('\n').substr(2);
-	        } else {
-	          str = '\n' + str.split('\n').map(function(line) {
-	            return '   ' + line;
-	          }).join('\n');
-	        }
-	      }
-	    } else {
-	      str = ctx.stylize('[Circular]', 'special');
-	    }
-	  }
-	  if (isUndefined(name)) {
-	    if (array && key.match(/^\d+$/)) {
-	      return str;
-	    }
-	    name = JSON.stringify('' + key);
-	    if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
-	      name = name.substr(1, name.length - 2);
-	      name = ctx.stylize(name, 'name');
-	    } else {
-	      name = name.replace(/'/g, "\\'")
-	                 .replace(/\\"/g, '"')
-	                 .replace(/(^"|"$)/g, "'");
-	      name = ctx.stylize(name, 'string');
-	    }
-	  }
-
-	  return name + ': ' + str;
-	}
-
-
-	function reduceToSingleString(output, base, braces) {
-	  var numLinesEst = 0;
-	  var length = output.reduce(function(prev, cur) {
-	    numLinesEst++;
-	    if (cur.indexOf('\n') >= 0) numLinesEst++;
-	    return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
-	  }, 0);
-
-	  if (length > 60) {
-	    return braces[0] +
-	           (base === '' ? '' : base + '\n ') +
-	           ' ' +
-	           output.join(',\n  ') +
-	           ' ' +
-	           braces[1];
-	  }
-
-	  return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
-	}
-
-
-	// NOTE: These type checking functions intentionally don't use `instanceof`
-	// because it is fragile and can be easily faked with `Object.create()`.
-	function isArray(ar) {
-	  return Array.isArray(ar);
-	}
-	exports.isArray = isArray;
-
-	function isBoolean(arg) {
-	  return typeof arg === 'boolean';
-	}
-	exports.isBoolean = isBoolean;
-
-	function isNull(arg) {
-	  return arg === null;
-	}
-	exports.isNull = isNull;
-
-	function isNullOrUndefined(arg) {
-	  return arg == null;
-	}
-	exports.isNullOrUndefined = isNullOrUndefined;
-
-	function isNumber(arg) {
-	  return typeof arg === 'number';
-	}
-	exports.isNumber = isNumber;
-
-	function isString(arg) {
-	  return typeof arg === 'string';
-	}
-	exports.isString = isString;
-
-	function isSymbol(arg) {
-	  return typeof arg === 'symbol';
-	}
-	exports.isSymbol = isSymbol;
-
-	function isUndefined(arg) {
-	  return arg === void 0;
-	}
-	exports.isUndefined = isUndefined;
-
-	function isRegExp(re) {
-	  return isObject(re) && objectToString(re) === '[object RegExp]';
-	}
-	exports.isRegExp = isRegExp;
-
-	function isObject(arg) {
-	  return typeof arg === 'object' && arg !== null;
-	}
-	exports.isObject = isObject;
-
-	function isDate(d) {
-	  return isObject(d) && objectToString(d) === '[object Date]';
-	}
-	exports.isDate = isDate;
-
-	function isError(e) {
-	  return isObject(e) &&
-	      (objectToString(e) === '[object Error]' || e instanceof Error);
-	}
-	exports.isError = isError;
-
-	function isFunction(arg) {
-	  return typeof arg === 'function';
-	}
-	exports.isFunction = isFunction;
-
-	function isPrimitive(arg) {
-	  return arg === null ||
-	         typeof arg === 'boolean' ||
-	         typeof arg === 'number' ||
-	         typeof arg === 'string' ||
-	         typeof arg === 'symbol' ||  // ES6 symbol
-	         typeof arg === 'undefined';
-	}
-	exports.isPrimitive = isPrimitive;
-
-	exports.isBuffer = __webpack_require__(162);
-
-	function objectToString(o) {
-	  return Object.prototype.toString.call(o);
-	}
-
-
-	function pad(n) {
-	  return n < 10 ? '0' + n.toString(10) : n.toString(10);
-	}
-
-
-	var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
-	              'Oct', 'Nov', 'Dec'];
-
-	// 26 Feb 16:19:34
-	function timestamp() {
-	  var d = new Date();
-	  var time = [pad(d.getHours()),
-	              pad(d.getMinutes()),
-	              pad(d.getSeconds())].join(':');
-	  return [d.getDate(), months[d.getMonth()], time].join(' ');
-	}
-
-
-	// log is just a thin wrapper to console.log that prepends a timestamp
-	exports.log = function() {
-	  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
-	};
-
-
-	/**
-	 * Inherit the prototype methods from one constructor into another.
-	 *
-	 * The Function.prototype.inherits from lang.js rewritten as a standalone
-	 * function (not on Function.prototype). NOTE: If this file is to be loaded
-	 * during bootstrapping this function needs to be rewritten using some native
-	 * functions as prototype setup using normal JavaScript does not work as
-	 * expected during bootstrapping (see mirror.js in r114903).
-	 *
-	 * @param {function} ctor Constructor function which needs to inherit the
-	 *     prototype.
-	 * @param {function} superCtor Constructor function to inherit prototype from.
-	 */
-	exports.inherits = __webpack_require__(163);
-
-	exports._extend = function(origin, add) {
-	  // Don't do anything if add isn't an object
-	  if (!add || !isObject(add)) return origin;
-
-	  var keys = Object.keys(add);
-	  var i = keys.length;
-	  while (i--) {
-	    origin[keys[i]] = add[keys[i]];
-	  }
-	  return origin;
-	};
-
-	function hasOwnProperty(obj, prop) {
-	  return Object.prototype.hasOwnProperty.call(obj, prop);
-	}
-
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(4)))
 
 /***/ },
 /* 162 */
 /***/ function(module, exports) {
 
-	module.exports = function isBuffer(arg) {
-	  return arg && typeof arg === 'object'
-	    && typeof arg.copy === 'function'
-	    && typeof arg.fill === 'function'
-	    && typeof arg.readUInt8 === 'function';
-	}
+	"use strict";
 
-/***/ },
-/* 163 */
-/***/ function(module, exports) {
+	(function () {
+	  'use strict';
 
-	if (typeof Object.create === 'function') {
-	  // implementation from standard node.js 'util' module
-	  module.exports = function inherits(ctor, superCtor) {
-	    ctor.super_ = superCtor
-	    ctor.prototype = Object.create(superCtor.prototype, {
-	      constructor: {
-	        value: ctor,
-	        enumerable: false,
-	        writable: true,
-	        configurable: true
+	  var getID = function (id0) {
+	    var id = id0;
+	    return function () {
+	      return id++;
+	    };
+	  }(0);
+	  //-----------------------------------
+	  //__([a,b], true) // new seq depends on ds =[a,b]
+	  var __ = function __() {
+	    var ds = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+	    var store = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+
+	    var seq = []; //seq is vanilla JS array + features
+	    seq.id = getID();
+	    seq.store = store;
+	    seq.us = [];
+	    seq.ds = ds;
+	    seq.updatedFor = {};
+	    seq.eq = function () {
+	      return seq.ds.map(function (d) {
+	        return d.t;
+	      });
+	    };
+
+	    seq.ds.map(function (d) {
+	      // add self seq to us Array of d
+	      d.us[d.us.length] = seq;
+	      d.updatedFor[seq.id] = 0; // non-interference dependency
+	    });
+
+	    //-----------------
+	    seq.tMap = function (f) {
+	      var tMappedSeq = __([seq], store);
+	      var t0 = Date.now();
+	      tMappedSeq.eq = function (t) {
+	        return f(t, t0);
+	      };
+	      return tMappedSeq;
+	    };
+	    //-----------------
+	    seq.immutableSeqMap = function (immutableSeq) {
+	      var seqMappedSeq = __([seq], store);
+	      var it = immutableSeq.values();
+	      seqMappedSeq.eq = function () {
+	        return it.next().value;
+	      };
+	      return seqMappedSeq;
+	    };
+
+	    seq.log = function (msg) {
+	      seq.tMap(function (val) {
+	        if (typeof msg === "undefined") {
+	          console.log(val);
+	          return val;
+	        } else {
+	          console.info(msg + ":", val);
+	          return val;
+	        }
+	      });
+	      return seq;
+	    };
+	    //-----------------
+
+	    var IOT = {};
+	    seq.IndexOnTimestamp = function (timestamp) {
+	      return IOT[timestamp];
+	    };
+
+	    var TOI = {};
+	    seq.TimestampOnIndex = function (index) {
+	      return TOI[index];
+	    };
+
+	    seq.T = function (timestamp) {
+	      if (store) {
+	        return seq[seq.IndexOnTimestamp(timestamp)];
+	      } else {
+	        throw new Error("store flag is not true");
+	      }
+	    };
+
+	    Object.defineProperties(seq, //detect t update on each seqs
+	    {
+	      t: { //foo.t
+
+	        get: function get() {
+	          return seq.valOnT;
+	        },
+	        set: function set(tval) {
+	          seq.valOnT = tval;
+	          //----------------------
+	          if (store) {
+	            var T = Date.now();
+	            IOT[T] = seq.length;
+	            TOI[seq.length] = T;
+	            seq[seq.length] = seq.valOnT;
+	          }
+	          //----------------------
+	          Object.keys(seq.updatedFor).map(function (key) {
+	            seq.updatedFor[key] = 1;
+	          });
+	          seq.us.map(function (u) {
+	            //-------------------
+	            var dsAllUpdated = u.ds.map(function (d) {
+	              return d.updatedFor[u.id];
+	            }).reduce(function (a, b) {
+	              return a * b;
+	            });
+
+	            if (dsAllUpdated === 1) {
+	              u.t = u.eq(tval); //propagate
+	              //--clear updated ds in non-interference way--
+	              u.ds.map(function (d) {
+	                d.updatedFor[u.id] = 0;
+	              });
+	            }
+	          });
+	        }
 	      }
 	    });
+	    //=====================================
+	    return seq;
 	  };
-	} else {
-	  // old school shim for old browsers
-	  module.exports = function inherits(ctor, superCtor) {
-	    ctor.super_ = superCtor
-	    var TempCtor = function () {}
-	    TempCtor.prototype = superCtor.prototype
-	    ctor.prototype = new TempCtor()
-	    ctor.prototype.constructor = ctor
+	  //==================
+
+	  __.DELAY = 0;
+	  __.INTERVAL = 1;
+
+	  __.time = function (mode, interval, store) {
+	    var seq = __([], store);
+	    if (mode === __.DELAY) {
+	      setTimeout(function () {
+	        return seq.t = Date.now();
+	      }, interval);
+	    } else if (mode === __.INTERVAL) {
+	      setInterval(function () {
+	        return seq.t = Date.now();
+	      }, interval);
+	    }
+	    return seq;
+	  };
+
+	  __.log = __([], true);
+	  __.log.tMap(function (val) {
+	    console.info(val);
+	    return val;
+	  });
+
+	  Object.defineProperties(__, {
+	    t: {
+	      get: function get() {
+	        return Date.now();
+	      },
+	      set: function set(f) {
+	        f();
+	      }
+	    }
+	  });
+
+	  __.pure = function (legacyF) {
+	    var f = function f() {
+	      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	        args[_key] = arguments[_key];
+	      }
+
+	      var wrappedF = function wrappedF() {
+	        legacyF.apply(undefined, args);
+	      };
+	      return wrappedF;
+	    };
+	    return f;
+	  };
+	  //------------------
+
+	  if (typeof module !== 'undefined' && module.exports) {
+	    module.exports = __;
+	  } else {
+	    window.__ = __;
 	  }
-	}
+	})();
 
 
 /***/ }

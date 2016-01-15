@@ -5,6 +5,7 @@
   var ReactDOM = require('react-dom');
   var Immutable = require('immutable');
   var __ = require('timeengine');
+  var __Component = require('timeengine-react');
 
   //================================
   var HelloComponent = () => (<div>HelloComponent!!</div>);
@@ -105,75 +106,63 @@
 
   //########## FRP ############################
 
-  //***React state with life cycle is stateless sequence*****
-  var seqComponent = (__seq) => {
 
-    class SeqComponent extends React.Component {
-      constructor() {
-        super();
-        this.state = {
-          seq: __seq.t
-        };
-        var timeseq = __seq
-          .tMap((val) => {
-            this.setState({
-              seq: val
-            });
-          });
-      }
-      render() {
-        return (<span>{this.state.seq}</span>);
-      };
-    }
+  var TextComponent = () => {
+    var __value = __();
+    var onChange = (e) => {
+      __value.t = e.target.value;
+      __value.log("__value");
+    };
 
-    return (<SeqComponent/>);
+    var __seqEl = __([__value])
+      .tMap(([value]) => (<div>
+        <input type="text" value={value} onChange={onChange}/>
+        </div>));
+
+    __value.t = "default text";
+    return __Component(__seqEl);
   };
-  //**************************************
 
   var TimerComponent = () => {
 
     var naturalSeq = Immutable.Range();
     //infinite natural numbers sequence [0...Infinite]
-
     var __count = __
-      .intervalSeq(1000) //1000msec time resolution
+      .time(__.INTERVAL, 1000) //1000msec time resolution
       // `seqMap` is to map Immutable-js infinite Sequence
       //                 onto TimeEngine infinite Sequence
       // map natural numbers sequence onto intervalSeq(1000)
-      .seqMap(naturalSeq)
+      .immutableSeqMap(naturalSeq)
       .tMap((count) => {
-        __.t = __.log(count);
+        __.log.t = count;
         return count;
       });
       // as a result, this works as an incremental counter
 
-    var el = (<div>Timer : {seqComponent(__count)}</div>);
+    var __seqEl = __([__count])
+      .tMap(([count]) => (<div>Timer : {count}</div>));
 
-    return el;
+    return __Component(__seqEl);
   };
 
-  //-------Physics-------------------------------
 
-  //MKS system of units
-  var V0 = 85.0; // m/s
-  var DEG = 40; //degree
-  var THETA = DEG / 180 * Math.PI; //radian
-  var G = 9.8; //gravity const
-
-  //10msec time resolution
-  //t seconds elapsed since t0
-  var t = __.intervalSeq(10).tMap((tt, t0) => (tt - t0) / 1000);
-
-  var x = t.tMap((t) => V0 * Math.cos(THETA) * t);
-
-  var y = t.tMap((t) => V0 * Math.sin(THETA) * t - 1 / 2 * G * Math.pow(t, 2));
-
-  //==============================================================
-  var Drawscale = 2; //2 dot = 1 meter
 
   var PhysicsComponent = () => {
+    //-------Physics-------------------------------
+    //MKS system of units
+    var V0 = 85.0; // m/s
+    var DEG = 40; //degree
+    var THETA = DEG / 180 * Math.PI; //radian
+    var G = 9.8; //gravity const
 
-    var __seqElement = __([x, y]) //atomic update
+    //10msec time resolution
+    //t seconds elapsed since t0
+    var t = __.time(__.INTERVAL, 10).tMap((tt, t0) => (tt - t0) / 1000);
+    var x = t.tMap((t) => V0 * Math.cos(THETA) * t);
+    var y = t.tMap((t) => V0 * Math.sin(THETA) * t - 1 / 2 * G * Math.pow(t, 2));
+    //==============================================================
+    var Drawscale = 2; //2 dot = 1 meter
+    var __seqEl = __([x, y]) //atomic update
       .tMap(([x, y]) => (
       <div>
         <svg height = "100%"  width = "100%">
@@ -182,9 +171,7 @@
         </svg>
       </div>));
 
-    var el = (<div>{seqComponent(__seqElement)}</div>);
-
-    return el;
+    return __Component(__seqEl);
   };
 
 
@@ -210,6 +197,8 @@
       {ChildrenNumberComponent10()}
       =====================
       {ChildrenNumberComponent100()}
+      =====================
+      {TextComponent()}
       =====================
       {TimerComponent()}
       =====================
